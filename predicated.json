@@ -1,0 +1,369 @@
+[
+    {
+        "id": "f119e404760129e4",
+        "type": "tab",
+        "label": "Plant Monitor",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "040848cea6ad4f77",
+        "type": "mqtt in",
+        "z": "f119e404760129e4",
+        "name": "Predicted env",
+        "topic": "plant/env/predicted",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 80,
+        "wires": [
+            [
+                "209565f99e356df6"
+            ]
+        ]
+    },
+    {
+        "id": "209565f99e356df6",
+        "type": "json",
+        "z": "f119e404760129e4",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 340,
+        "y": 80,
+        "wires": [
+            [
+                "44f999fc64e14ce9",
+                "fecdaad72e4c16bf",
+                "02572b39b359f586"
+            ]
+        ]
+    },
+    {
+        "id": "44f999fc64e14ce9",
+        "type": "function",
+        "z": "f119e404760129e4",
+        "name": "Route LEDs by label",
+        "func": "let p = msg.payload || {};\nlet label = p.y_label_pred || p.y_label || \"unknown\";\n\nlet normalMsg = { payload: label === \"normal\" };\nlet alertMsg  = { payload: label === \"alert\" };\nlet alarmMsg  = { payload: label === \"alarm\" };\n\nreturn [normalMsg, alertMsg, alarmMsg];",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 60,
+        "wires": [
+            [
+                "4c78dedf33605d83"
+            ],
+            [
+                "8e5f6fe1315ef6d8"
+            ],
+            [
+                "3b2b5542e3d7bb49"
+            ]
+        ]
+    },
+    {
+        "id": "02572b39b359f586",
+        "type": "function",
+        "z": "f119e404760129e4",
+        "name": "To chart series",
+        "func": "let p = msg.payload || {};\nlet msgs = [];\n\n// Use timestamp from payload if possible, else now\nlet ts = Date.now();\nif (p.timestamp) {\n  let d = new Date(p.timestamp);\n  if (!isNaN(d.getTime())) {\n    ts = d.getTime();\n  }\n}\n\nif (typeof p.temp_c !== 'undefined') {\n  msgs.push({ topic: 'temp_c', payload: p.temp_c, timestamp: ts });\n}\nif (typeof p.humidity_pct !== 'undefined') {\n  msgs.push({ topic: 'humidity_pct', payload: p.humidity_pct, timestamp: ts });\n}\n// if (typeof p.lux !== 'undefined') {\n//   msgs.push({ topic: 'lux', payload: p.lux, timestamp: ts });\n// }\nif (typeof p.vpd_kpa !== 'undefined') {\n  msgs.push({ topic: 'vpd_kpa', payload: p.vpd_kpa, timestamp: ts });\n}\n\n// Return multiple messages on single output\nreturn [msgs];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 200,
+        "wires": [
+            [
+                "b84069c52dabcbc4"
+            ]
+        ]
+    },
+    {
+        "id": "4c78dedf33605d83",
+        "type": "ui_led",
+        "z": "f119e404760129e4",
+        "order": 1,
+        "group": "ui_group_alarm",
+        "width": 0,
+        "height": 0,
+        "label": "Normal",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#00ff00",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "",
+        "x": 860,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "8e5f6fe1315ef6d8",
+        "type": "ui_led",
+        "z": "f119e404760129e4",
+        "order": 2,
+        "group": "ui_group_alarm",
+        "width": 0,
+        "height": 0,
+        "label": "Alert",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ffff00",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "",
+        "x": 860,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "3b2b5542e3d7bb49",
+        "type": "ui_led",
+        "z": "f119e404760129e4",
+        "order": 3,
+        "group": "ui_group_alarm",
+        "width": 0,
+        "height": 0,
+        "label": "Alarm",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "",
+        "x": 860,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "fecdaad72e4c16bf",
+        "type": "ui_text",
+        "z": "f119e404760129e4",
+        "group": "ui_group_alarm",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "Predicted state",
+        "label": "Predicted:",
+        "format": "{{msg.payload.y_label_pred || msg.payload.y_label}}",
+        "layout": "row-spread",
+        "className": "",
+        "x": 640,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "b84069c52dabcbc4",
+        "type": "ui_chart",
+        "z": "f119e404760129e4",
+        "name": "Env values",
+        "group": "55fee48749327729",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "Environment Values",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "No data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b"
+        ],
+        "outputs": 1,
+        "x": 870,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c6d2b2c3b7c0b111",
+        "type": "ui_button",
+        "z": "f119e404760129e4",
+        "name": "Clear dashboard",
+        "group": "ui_group_alarm",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Clear",
+        "tooltip": "Clear chart & reset LEDs",
+        "color": "",
+        "bgcolor": "",
+        "icon": "delete",
+        "payload": "clear",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "8a6a5f1d6b0c2d22"
+            ]
+        ]
+    },
+    {
+        "id": "8a6a5f1d6b0c2d22",
+        "type": "function",
+        "z": "f119e404760129e4",
+        "name": "Clear dashboard (chart + LEDs + text)",
+        "func": "// Output 1 -> chart, Output 2 -> normal LED, Output 3 -> alert LED, Output 4 -> alarm LED, Output 5 -> predicted text\n\n// 1) Clear ui_chart (Node-RED Dashboard): send msg.payload = [] to clear\nlet chartMsg = { payload: [] };\n\n// 2) Reset LEDs off\nlet normalOff = { payload: false };\nlet alertOff  = { payload: false };\nlet alarmOff  = { payload: false };\n\n// 3) Clear predicted text (optional)\n// ui_text uses format: {{msg.payload.y_label_pred || msg.payload.y_label}}\n// so send empty object to make it blank\nlet textClear = { payload: {} };\n\nreturn [chartMsg, normalOff, alertOff, alarmOff, textClear];",
+        "outputs": 5,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 300,
+        "wires": [
+            [
+                "4c78dedf33605d83"
+            ],
+            [
+                "8e5f6fe1315ef6d8"
+            ],
+            [
+                "3b2b5542e3d7bb49"
+            ],
+            [
+                "fecdaad72e4c16bf"
+            ],
+            [
+                "b84069c52dabcbc4"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "Local MQTT",
+        "broker": "broker.emqx.io",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ui_group_alarm",
+        "type": "ui_group",
+        "name": "Alarm Status",
+        "tab": "ui_tab_plant",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "55fee48749327729",
+        "type": "ui_group",
+        "name": "Environment Values",
+        "tab": "ui_tab_plant",
+        "order": 2,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ui_tab_plant",
+        "type": "ui_tab",
+        "name": "Plant Dashboard",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "7e1c5783d7494821",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-ui-led": "0.4.11",
+            "node-red-dashboard": "3.6.5"
+        }
+    }
+]
