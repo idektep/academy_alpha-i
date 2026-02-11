@@ -75,18 +75,18 @@
         "type": "function",
         "z": "f119e404760129e4",
         "name": "To chart series",
-        "func": "let p = msg.payload || {};\nlet msgs = [];\n\n// Use timestamp from payload if possible, else now\nlet ts = Date.now();\nif (p.timestamp) {\n  let d = new Date(p.timestamp);\n  if (!isNaN(d.getTime())) {\n    ts = d.getTime();\n  }\n}\n\nif (typeof p.temp_c !== 'undefined') {\n  msgs.push({ topic: 'temp_c', payload: p.temp_c, timestamp: ts });\n}\nif (typeof p.humidity_pct !== 'undefined') {\n  msgs.push({ topic: 'humidity_pct', payload: p.humidity_pct, timestamp: ts });\n}\n// if (typeof p.lux !== 'undefined') {\n//   msgs.push({ topic: 'lux', payload: p.lux, timestamp: ts });\n// }\nif (typeof p.vpd_kpa !== 'undefined') {\n  msgs.push({ topic: 'vpd_kpa', payload: p.vpd_kpa, timestamp: ts });\n}\n\n// Return multiple messages on single output\nreturn [msgs];",
+        "func": "let p = msg.payload || {};\nlet msgs = [];\n\n// Use timestamp from payload if possible, else now\nlet ts = Date.now();\nif (p.timestamp) {\n    let d = new Date(p.timestamp);\n    if (!isNaN(d.getTime())) {\n        ts = d.getTime();\n    }\n}\n\nif (typeof p.temp_c !== 'undefined') {\n    msgs.push({ topic: 'temp_c', payload: p.temp_c, timestamp: ts });\n}\nif (typeof p.humidity_pct !== 'undefined') {\n    msgs.push({ topic: 'humidity_pct', payload: p.humidity_pct, timestamp: ts });\n}\n// if (typeof p.lux !== 'undefined') {\n//   msgs.push({ topic: 'lux', payload: p.lux, timestamp: ts });\n// }\nif (typeof p.vpd_kpa !== 'undefined') {\n    msgs.push({ topic: 'vpd_kpa', payload: p.vpd_kpa, timestamp: ts });\n}\n\n// Return multiple messages on single output\nreturn [msgs];",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 610,
-        "y": 200,
+        "x": 540,
+        "y": 220,
         "wires": [
             [
-                "b84069c52dabcbc4"
+                "1bded8f4b63caf7b"
             ]
         ]
     },
@@ -196,91 +196,26 @@
         "format": "{{msg.payload.y_label_pred || msg.payload.y_label}}",
         "layout": "row-spread",
         "className": "",
-        "x": 640,
-        "y": 140,
+        "x": 880,
+        "y": 180,
         "wires": []
-    },
-    {
-        "id": "b84069c52dabcbc4",
-        "type": "ui_chart",
-        "z": "f119e404760129e4",
-        "name": "Env values",
-        "group": "55fee48749327729",
-        "order": 1,
-        "width": 0,
-        "height": 0,
-        "label": "Environment Values",
-        "chartType": "line",
-        "legend": "true",
-        "xformat": "HH:mm:ss",
-        "interpolate": "linear",
-        "nodata": "No data",
-        "dot": false,
-        "ymin": "",
-        "ymax": "",
-        "removeOlder": "1",
-        "removeOlderPoints": "",
-        "removeOlderUnit": "3600",
-        "cutout": 0,
-        "useOneColor": false,
-        "useUTC": false,
-        "colors": [
-            "#1f77b4",
-            "#ff7f0e",
-            "#2ca02c",
-            "#d62728",
-            "#9467bd",
-            "#8c564b"
-        ],
-        "outputs": 1,
-        "x": 870,
-        "y": 200,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "c6d2b2c3b7c0b111",
-        "type": "ui_button",
-        "z": "f119e404760129e4",
-        "name": "Clear dashboard",
-        "group": "ui_group_alarm",
-        "order": 5,
-        "width": 0,
-        "height": 0,
-        "passthru": false,
-        "label": "Clear",
-        "tooltip": "Clear chart & reset LEDs",
-        "color": "",
-        "bgcolor": "",
-        "icon": "delete",
-        "payload": "clear",
-        "payloadType": "str",
-        "topic": "",
-        "topicType": "str",
-        "x": 170,
-        "y": 300,
-        "wires": [
-            [
-                "8a6a5f1d6b0c2d22"
-            ]
-        ]
     },
     {
         "id": "8a6a5f1d6b0c2d22",
         "type": "function",
         "z": "f119e404760129e4",
         "name": "Clear dashboard (chart + LEDs + text)",
-        "func": "// Output 1 -> chart, Output 2 -> normal LED, Output 3 -> alert LED, Output 4 -> alarm LED, Output 5 -> predicted text\n\n// 1) Clear ui_chart (Node-RED Dashboard): send msg.payload = [] to clear\nlet chartMsg = { payload: [] };\n\n// 2) Reset LEDs off\nlet normalOff = { payload: false };\nlet alertOff  = { payload: false };\nlet alarmOff  = { payload: false };\n\n// 3) Clear predicted text (optional)\n// ui_text uses format: {{msg.payload.y_label_pred || msg.payload.y_label}}\n// so send empty object to make it blank\nlet textClear = { payload: {} };\n\nreturn [chartMsg, normalOff, alertOff, alarmOff, textClear];",
+        "func": "// ---------- CHECK EMPTY PAYLOAD ----------\nlet isEmptyObject =\n    typeof msg.payload === \"object\" &&\n    !Array.isArray(msg.payload) &&\n    Object.keys(msg.payload).length === 0;\n\nlet isEmptyArray =\n    Array.isArray(msg.payload) &&\n    msg.payload.length === 0;\n\nif (isEmptyObject || isEmptyArray) {\n\n    // ----- RESET MODE -----\n    let normalOff = { payload: false };\n    let alertOff = { payload: false };\n    let alarmOff = { payload: false };\n    let textClear = { payload: \"\" };\n\n    return [null, normalOff, alertOff, alarmOff, textClear];\n}\n",
         "outputs": 5,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
-        "y": 300,
+        "x": 490,
+        "y": 340,
         "wires": [
+            [],
             [
                 "4c78dedf33605d83"
             ],
@@ -292,11 +227,91 @@
             ],
             [
                 "fecdaad72e4c16bf"
-            ],
-            [
-                "b84069c52dabcbc4"
             ]
         ]
+    },
+    {
+        "id": "1bded8f4b63caf7b",
+        "type": "ui_chart",
+        "z": "f119e404760129e4",
+        "name": "Env values",
+        "group": "55fee48749327729",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "Environment Values",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "No data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "86400",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 890,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fdd33013d91c5116",
+        "type": "ui_button",
+        "z": "f119e404760129e4",
+        "name": "",
+        "group": "ui_group_alarm",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "RESET BUTTON",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 210,
+        "y": 260,
+        "wires": [
+            [
+                "8a6a5f1d6b0c2d22",
+                "1bded8f4b63caf7b"
+            ]
+        ]
+    },
+    {
+        "id": "c73f130354e0eb34",
+        "type": "ui_spacer",
+        "z": "f119e404760129e4",
+        "name": "spacer",
+        "group": "ui_group_alarm",
+        "order": 5,
+        "width": 6,
+        "height": 1
     },
     {
         "id": "mqtt_broker_local",
@@ -358,7 +373,7 @@
         "hidden": false
     },
     {
-        "id": "7e1c5783d7494821",
+        "id": "ee3cd32cdcecc4af",
         "type": "global-config",
         "env": [],
         "modules": {
