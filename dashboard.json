@@ -1,0 +1,1042 @@
+[
+    {
+        "id": "f69357c771ce2ffc",
+        "type": "tab",
+        "label": "🏆 Smart Farm AI Competition",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "6a13c8aa0721c49b",
+        "type": "mqtt in",
+        "z": "f69357c771ce2ffc",
+        "name": "Predicted env",
+        "topic": "plant/env/predicted",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "24f4208c03e5e5cc",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 80,
+        "wires": [
+            [
+                "c253649f1deae6a3"
+            ]
+        ]
+    },
+    {
+        "id": "c253649f1deae6a3",
+        "type": "json",
+        "z": "f69357c771ce2ffc",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 340,
+        "y": 80,
+        "wires": [
+            [
+                "da36b6f860f03590",
+                "eeb5123ad684eb29",
+                "a4f6643a4408d63d",
+                "5fd76db7e45f807e",
+                "fb0792195e30a5b9",
+                "1730c9c2cb7a9736"
+            ]
+        ]
+    },
+    {
+        "id": "da36b6f860f03590",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "Route LEDs by label",
+        "func": "let p = msg.payload || {};\nlet label = p.y_label_pred || p.y_label || \"unknown\";\n\nlet normalMsg = { payload: label === \"normal\" };\nlet alertMsg  = { payload: label === \"alert\" };\nlet alarmMsg  = { payload: label === \"alarm\" };\n\nreturn [normalMsg, alertMsg, alarmMsg];",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 60,
+        "wires": [
+            [
+                "3b519eef32e5ddfe"
+            ],
+            [
+                "a6de3c9f36ca3603"
+            ],
+            [
+                "976408b1354b3601"
+            ]
+        ]
+    },
+    {
+        "id": "a4f6643a4408d63d",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To chart series",
+        "func": "let p = msg.payload || {};\nlet msgs = [];\n\n// Use timestamp from payload if possible, else now\nlet ts = Date.now();\nif (p.timestamp) {\n    let d = new Date(p.timestamp);\n    if (!isNaN(d.getTime())) {\n        ts = d.getTime();\n    }\n}\n\nif (typeof p.temp_c !== 'undefined') {\n    msgs.push({ topic: 'temp_c', payload: p.temp_c, timestamp: ts });\n}\nif (typeof p.humidity_pct !== 'undefined') {\n    msgs.push({ topic: 'humidity_pct', payload: p.humidity_pct, timestamp: ts });\n}\n// if (typeof p.lux !== 'undefined') {\n//   msgs.push({ topic: 'lux', payload: p.lux, timestamp: ts });\n// }\nif (typeof p.vpd_kpa !== 'undefined') {\n    msgs.push({ topic: 'vpd_kpa', payload: p.vpd_kpa, timestamp: ts });\n}\n\n// Return multiple messages on single output\nreturn [msgs];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 160,
+        "wires": [
+            [
+                "3a72fc1db1a4fe0e"
+            ]
+        ]
+    },
+    {
+        "id": "a6de3c9f36ca3603",
+        "type": "ui_led",
+        "z": "f69357c771ce2ffc",
+        "order": 9,
+        "group": "931358ad38aeeb34",
+        "width": 8,
+        "height": 1,
+        "label": "Alert",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ffff00",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "led_ale",
+        "x": 870,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "976408b1354b3601",
+        "type": "ui_led",
+        "z": "f69357c771ce2ffc",
+        "order": 1,
+        "group": "931358ad38aeeb34",
+        "width": 8,
+        "height": 1,
+        "label": "Alarm",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "led_ala",
+        "x": 870,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "eeb5123ad684eb29",
+        "type": "ui_text",
+        "z": "f69357c771ce2ffc",
+        "group": "931358ad38aeeb34",
+        "order": 22,
+        "width": 8,
+        "height": 2,
+        "name": "Predicted state",
+        "label": "Predicted:",
+        "format": "{{msg.payload.y_label_pred || msg.payload.y_label}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "x": 880,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "33a37e247cbfbbe2",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "Clear dashboard (chart + LEDs + text)",
+        "func": "// ---------- CHECK EMPTY PAYLOAD ----------\nlet isEmptyObject =\n    typeof msg.payload === \"object\" &&\n    !Array.isArray(msg.payload) &&\n    Object.keys(msg.payload).length === 0;\n\nlet isEmptyArray =\n    Array.isArray(msg.payload) &&\n    msg.payload.length === 0;\n\nif (isEmptyObject || isEmptyArray) {\n\n    // ----- RESET MODE -----\n    let normalOff = { payload: false };\n    let alertOff = { payload: false };\n    let alarmOff = { payload: false };\n    let textClear = { payload: \"\" };\n\n    return [null, normalOff, alertOff, alarmOff, textClear];\n}\n",
+        "outputs": 5,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 340,
+        "wires": [
+            [],
+            [
+                "3b519eef32e5ddfe"
+            ],
+            [
+                "a6de3c9f36ca3603"
+            ],
+            [
+                "976408b1354b3601"
+            ],
+            [
+                "eeb5123ad684eb29"
+            ]
+        ]
+    },
+    {
+        "id": "3a72fc1db1a4fe0e",
+        "type": "ui_chart",
+        "z": "f69357c771ce2ffc",
+        "name": "thv values",
+        "group": "931358ad38aeeb34",
+        "order": 30,
+        "width": 14,
+        "height": 7,
+        "label": "TEMP_HUMID_VPD MONITOR",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "No data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "86400",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 880,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5775fb2160009e38",
+        "type": "ui_button",
+        "z": "f69357c771ce2ffc",
+        "name": "",
+        "group": "931358ad38aeeb34",
+        "order": 7,
+        "width": 5,
+        "height": 1,
+        "passthru": false,
+        "label": "RESET BUTTON",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 210,
+        "y": 260,
+        "wires": [
+            [
+                "33a37e247cbfbbe2",
+                "3a72fc1db1a4fe0e",
+                "d9aeb1ae0ad43db7"
+            ]
+        ]
+    },
+    {
+        "id": "4579841be2238c59",
+        "type": "ui_gauge",
+        "z": "f69357c771ce2ffc",
+        "name": "🌡 Temp Gauge",
+        "group": "931358ad38aeeb34",
+        "order": 3,
+        "width": 4,
+        "height": 3,
+        "gtype": "gage",
+        "title": "🌡 Temp Gauge",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1100,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "a53f331c8a5c20ed",
+        "type": "ui_gauge",
+        "z": "f69357c771ce2ffc",
+        "name": "💧 Humidity",
+        "group": "931358ad38aeeb34",
+        "order": 5,
+        "width": 4,
+        "height": 3,
+        "gtype": "gage",
+        "title": "💧 Humidity",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1090,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "a0a7df94b609af09",
+        "type": "ui_gauge",
+        "z": "f69357c771ce2ffc",
+        "name": "☁️ VPD",
+        "group": "931358ad38aeeb34",
+        "order": 20,
+        "width": 4,
+        "height": 3,
+        "gtype": "gage",
+        "title": "☁️ VPD",
+        "label": "kPa",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "3",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1080,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "5fd76db7e45f807e",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To Sensors",
+        "func": "let p = msg.payload || {};\n\nreturn [\n    { payload: p.temp_c },\n    { payload: p.humidity_pct },\n    { payload: p.vpd_kpa },\n    { payload: p.lux}\n];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 400,
+        "wires": [
+            [
+                "4579841be2238c59",
+                "a53f331c8a5c20ed",
+                "a0a7df94b609af09",
+                "24605a2192dbb962"
+            ]
+        ]
+    },
+    {
+        "id": "fb0792195e30a5b9",
+        "type": "debug",
+        "z": "f69357c771ce2ffc",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1080,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "021bc6c78d68c3eb",
+        "type": "ui_template",
+        "z": "f69357c771ce2ffc",
+        "group": "931358ad38aeeb34",
+        "name": "Space Theme",
+        "order": 29,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n    /* ===============================\n   SOFT ENCHANTED FAIRY THEME v2\n=============================== */\n \n    /* ===== BACKGROUND ===== */\n    body {\n        background: linear-gradient(135deg, #f6d8ff 0%, #c8f7ff 40%, #ffe7c4 100%) !important;\n        font-family: \"Georgia\", serif !important;\n        color: #4b3a5a !important;\n    }\n \n    /* Sparkle overlay */\n    body::before {\n        content: \"\";\n        position: fixed;\n        width: 100%;\n        height: 100%;\n        background-image: radial-gradient(rgba(255, 255, 255, 0.6) 1px, transparent 1px);\n        background-size: 25px 25px;\n        pointer-events: none;\n        z-index: 0;\n        opacity: 0.3;\n    }\n \n    /* ===== TOP BAR ===== */\n    md-toolbar {\n        background: linear-gradient(90deg, #ffb6e6, #b8f0ff) !important;\n        color: #5a2d82 !important;\n        font-weight: bold;\n        letter-spacing: 1px;\n        box-shadow: 0 3px 15px rgba(255, 180, 255, 0.4);\n    }\n \n    /* ===== CARD STYLE (โปร่ง) ===== */\n    .nr-dashboard-card {\n        background: rgba(243, 183, 214, 0.8) !important;\n        backdrop-filter: blur(12px);\n        border-radius: 25px !important;\n        border: 1px solid rgba(255, 255, 255, 0.6);\n        box-shadow: 0 10px 35px rgba(180, 150, 255, 0.25);\n        transition: all 0.3s ease;\n    }\n \n    /* Hover glow */\n    .nr-dashboard-card:hover {\n        transform: translateY(-4px);\n        box-shadow: 0 15px 45px rgba(255, 150, 220, 0.35);\n    }\n \n    /* ===== CARD TITLE ===== */\n    .nr-dashboard-cardtitle {\n        color: #b03aff !important;\n        font-weight: bold;\n        font-size: 18px !important;\n        text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);\n    }\n \n    /* ===== GAUGE ===== */\n    .nr-dashboard-gauge text {\n        fill: #7a3cff !important;\n        font-weight: bold;\n    }\n \n    /* ===== CONTROL BARS (เรืองแสงแทนสีเทา) ===== */\n    .nr-dashboard-switch,\n    .nr-dashboard-ui_switch,\n    .nr-dashboard-template {\n        background: rgba(255, 255, 255, 0.4) !important;\n        border-radius: 20px !important;\n        backdrop-filter: blur(8px);\n    }\n \n    /* ===== LED GLOW ===== */\n    .nr-dashboard-ui_led div {\n        box-shadow: 0 0 15px currentColor !important;\n    }\n \n    /* ===== BUTTON ===== */\n    md-button {\n        border-radius: 25px !important;\n        background: linear-gradient(45deg, #ff6ec4, #7873f5) !important;\n        color: white !important;\n        font-weight: bold !important;\n        letter-spacing: 1px;\n        box-shadow: 0 6px 20px rgba(255, 100, 200, 0.4);\n        transition: 0.3s ease;\n    }\n \n    md-button:hover {\n        transform: scale(1.05);\n        box-shadow: 0 10px 30px rgba(255, 100, 220, 0.6);\n    }\n \n    /* ===== CHART AREA (เทาจาง) ===== */\n    .nr-dashboard-chart {\n        background: rgba(243, 183, 214, 0.8) !important;\n        border-radius: 20px;\n        padding: 15px;\n        backdrop-filter: blur(10px);\n    }\n \n    /* ===== TEXT ===== */\n    .nr-dashboard-text {\n        font-size: 16px !important;\n        color: #5a2d82 !important;\n    }\n \n    /* ===== REMOVE DARK GREY BLOCK ===== */\n    .nr-dashboard-cardcontainer {\n        background: transparent !important;\n    }\n \n    /* ===== RESET BUTTON  ===== */\n    .nr-dashboard-button button {\n        background: linear-gradient(45deg, #ff5f6d, #ffc371) !important;\n        border-radius: 20px !important;\n        font-weight: bold;\n    }\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": false,
+        "templateScope": "global",
+        "className": "",
+        "x": 480,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1730c9c2cb7a9736",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To chart series",
+        "func": "let p = msg.payload || {};\nlet msgs = [];\n\n// Use timestamp from payload if possible, else now\nlet ts = Date.now();\nif (p.timestamp) {\n    let d = new Date(p.timestamp);\n    if (!isNaN(d.getTime())) {\n        ts = d.getTime();\n    }\n}\n\nif (typeof p.lux !== 'undefined') {\n  msgs.push({ topic: 'lux', payload: p.lux, timestamp: ts });\n}\n\n// Return multiple messages on single output\nreturn [msgs];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 220,
+        "wires": [
+            [
+                "d9aeb1ae0ad43db7"
+            ]
+        ]
+    },
+    {
+        "id": "d9aeb1ae0ad43db7",
+        "type": "ui_chart",
+        "z": "f69357c771ce2ffc",
+        "name": "Lux values",
+        "group": "931358ad38aeeb34",
+        "order": 31,
+        "width": 15,
+        "height": 7,
+        "label": "LUX_MONITOR",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "No data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "86400",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 850,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "24605a2192dbb962",
+        "type": "ui_gauge",
+        "z": "f69357c771ce2ffc",
+        "name": "☀️ LUX",
+        "group": "931358ad38aeeb34",
+        "order": 18,
+        "width": 4,
+        "height": 3,
+        "gtype": "gage",
+        "title": "☀️ LUX",
+        "label": "lumen",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "5000",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1080,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e38cdbf2c749ee0c",
+        "type": "ui_template",
+        "z": "f69357c771ce2ffc",
+        "group": "",
+        "name": "Space Theme",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n    /* =====================================\n   ULTIMATE BRIGHT FAIRY TALE THEME\n   ===================================== */\n\n    /* ===== BACKGROUND SKY ===== */\n    body {\n        background: linear-gradient(135deg,\n                #ffdee9 0%,\n                #b5fffc 25%,\n                #c9b6ff 50%,\n                #ffe29f 75%,\n                #ffb7ce 100%) !important;\n        background-size: 400% 400%;\n        animation: rainbowSky 20s ease infinite;\n        font-family: \"Georgia\", serif !important;\n        color: #5a3e85 !important;\n        overflow-x: hidden;\n    }\n\n    @keyframes rainbowSky {\n        0% {\n            background-position: 0% 50%;\n        }\n\n        50% {\n            background-position: 100% 50%;\n        }\n\n        100% {\n            background-position: 0% 50%;\n        }\n    }\n\n    /* ===== FLOATING MAGIC SPARKLES ===== */\n    body::after {\n        content: \"\";\n        position: fixed;\n        width: 200%;\n        height: 200%;\n        background-image: radial-gradient(white 2px, transparent 2px);\n        background-size: 60px 60px;\n        opacity: 0.3;\n        animation: sparkleMove 30s linear infinite;\n        pointer-events: none;\n    }\n\n    @keyframes sparkleMove {\n        from {\n            transform: translateY(0);\n        }\n\n        to {\n            transform: translateY(-200px);\n        }\n    }\n\n    /* ===== TOP BAR ===== */\n    md-toolbar {\n        background: linear-gradient(90deg, #ff9a9e, #fad0c4) !important;\n        color: #7a3e9d !important;\n        font-weight: bold;\n        letter-spacing: 2px;\n        text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);\n    }\n\n    /* ===== CARD STYLE ===== */\n    .nr-dashboard-card {\n        background: rgba(255, 255, 255, 0.4) !important;\n        backdrop-filter: blur(12px);\n        border-radius: 25px !important;\n        border: 2px solid rgba(255, 255, 255, 0.6);\n        box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);\n        transition: all 0.4s ease;\n    }\n\n    .nr-dashboard-card:hover {\n        transform: scale(1.05);\n        box-shadow: 0 0 40px rgba(255, 255, 255, 1);\n    }\n\n    /* ===== CARD TITLE ===== */\n    .nr-dashboard-cardtitle {\n        color: #ff69b4 !important;\n        font-weight: bold;\n        font-size: 20px !important;\n        text-shadow: 0 0 10px rgba(255, 255, 255, 1);\n    }\n\n    /* ===== GAUGE TEXT ===== */\n    .nr-dashboard-gauge text {\n        fill: #8e44ad !important;\n        font-weight: bold;\n    }\n\n    /* ===== LED ===== */\n    .nr-dashboard-ui_led div {\n        box-shadow: 0 0 20px currentColor !important;\n    }\n\n    /* ===== BUTTON GEM STYLE ===== */\n    md-button {\n        border-radius: 25px !important;\n        background: linear-gradient(45deg, #ff9a9e, #a18cd1, #fbc2eb) !important;\n        color: #fff !important;\n        font-weight: bold !important;\n        letter-spacing: 1px;\n        box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);\n        transition: all 0.3s ease;\n    }\n\n    md-button:hover {\n        transform: scale(1.1);\n        box-shadow: 0 0 40px rgba(255, 255, 255, 1);\n    }\n\n    /* ===== CHART AREA ===== */\n    .nr-dashboard-chart {\n        background: rgba(255, 255, 255, 0.3) !important;\n        border-radius: 20px;\n        padding: 10px;\n    }\n\n    /* ===== TEXT ===== */\n    .nr-dashboard-text {\n        font-size: 17px !important;\n        color: #5a3e85 !important;\n    }\n\n    /* ===== SOFT CLOUD EFFECT ===== */\n    body::before {\n        content: \"\";\n        position: fixed;\n        width: 300px;\n        height: 150px;\n        background: rgba(255, 255, 255, 0.6);\n        border-radius: 50%;\n        filter: blur(40px);\n        top: 20%;\n        left: 10%;\n        animation: cloudFloat 40s infinite linear;\n        pointer-events: none;\n    }\n\n    @keyframes cloudFloat {\n        0% {\n            transform: translateX(0);\n        }\n\n        100% {\n            transform: translateX(100vw);\n        }\n    }\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "global",
+        "className": "",
+        "x": 480,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3b519eef32e5ddfe",
+        "type": "ui_led",
+        "z": "f69357c771ce2ffc",
+        "order": 13,
+        "group": "931358ad38aeeb34",
+        "width": 8,
+        "height": 1,
+        "label": "Normal",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#00ff00",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "led_nor",
+        "x": 870,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "dfa3a53ad34ef2b6",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 5,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "26febcae90a280d7",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 2,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "df6dfb5dbdd1799b",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 4,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "7dced1df77965bb4",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 5,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "715c1f30a955bb94",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 7,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "902ced95b73cbdf0",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 9,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "c24bc0c1696cad20",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 10,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "ab297b528b350986",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 2,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "94124535facf2070",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 4,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "2c2810f15b2ec7e0",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 6,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "098c62aebbd62df0",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 7,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "d4229de96e19de5b",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 8,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "63b95de5540aa914",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 9,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "ed3efc2cd44ecb15",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 10,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "993e70ad6af85c29",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 11,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "9c7f0ebc1e70840f",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 12,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "8a6a4a1b994b4092",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 13,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "a137f760b5d50af3",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 14,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "9f344f03d42cbb27",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 15,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "9721163f3067b67b",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 16,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "9057105a0c113ded",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 17,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "164631fe86ec1735",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "",
+        "order": 18,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "d275e43b82944714",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 2,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "5efd0f5bed22b06a",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 4,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "8837030b125fcf37",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 6,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "9e8edd6896217fac",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 8,
+        "width": 4,
+        "height": 1
+    },
+    {
+        "id": "085412a4beae0db4",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 10,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "bc1d784e5cc5cd34",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 11,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "f9066f96b02a0656",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 12,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "03dea2b80e7fc2b6",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 14,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "ef9bf493750721d4",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 15,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "184b8061ec323dbb",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 16,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "4d402436aefed63d",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 17,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "1ad722d8f78f2086",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 19,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "0e6928b184ecbd91",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 21,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "04daa0369414b288",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 23,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "6ffb52b802f59675",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 24,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "c12e7419609ba9b0",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 25,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "18f446d233003ce9",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 26,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "fbfa42342a3b38e8",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 27,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "e119cc4572ed10e0",
+        "type": "ui_spacer",
+        "z": "f69357c771ce2ffc",
+        "name": "spacer",
+        "group": "931358ad38aeeb34",
+        "order": 28,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "24f4208c03e5e5cc",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.emqx.io",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "931358ad38aeeb34",
+        "type": "ui_group",
+        "z": "f69357c771ce2ffc",
+        "name": "🌿 AI Greenhouse Control System",
+        "tab": "ui_tab_plant",
+        "order": 2,
+        "disp": true,
+        "width": 29,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ui_tab_plant",
+        "type": "ui_tab",
+        "name": "Plant Dashboard",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "88984b611d48bfa3",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-ui-led": "0.4.11",
+            "node-red-dashboard": "3.6.5"
+        }
+    }
+]
