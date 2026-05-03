@@ -42,9 +42,12 @@
                 "da36b6f860f03590",
                 "eeb5123ad684eb29",
                 "a4f6643a4408d63d",
-                "5fd76db7e45f807e",
                 "fb0792195e30a5b9",
-                "1730c9c2cb7a9736"
+                "1730c9c2cb7a9736",
+                "5fd76db7e45f807e",
+                "4f3f71a1c9064305",
+                "cb4faf023c6c7908",
+                "1ea7b4e657e7fd76"
             ]
         ]
     },
@@ -85,8 +88,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 540,
-        "y": 160,
+        "x": 660,
+        "y": 140,
         "wires": [
             [
                 "3a72fc1db1a4fe0e"
@@ -120,8 +123,8 @@
         "shape": "dot",
         "showGlow": true,
         "name": "led_ale",
-        "x": 870,
-        "y": 60,
+        "x": 920,
+        "y": 80,
         "wires": []
     },
     {
@@ -151,8 +154,8 @@
         "shape": "dot",
         "showGlow": true,
         "name": "led_ala",
-        "x": 870,
-        "y": 100,
+        "x": 920,
+        "y": 120,
         "wires": []
     },
     {
@@ -172,8 +175,8 @@
         "font": "",
         "fontSize": "",
         "color": "#000000",
-        "x": 880,
-        "y": 180,
+        "x": 940,
+        "y": 260,
         "wires": []
     },
     {
@@ -188,7 +191,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
+        "x": 530,
         "y": 340,
         "wires": [
             [],
@@ -244,8 +247,8 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 880,
-        "y": 260,
+        "x": 920,
+        "y": 180,
         "wires": [
             []
         ]
@@ -270,13 +273,17 @@
         "payloadType": "json",
         "topic": "topic",
         "topicType": "msg",
-        "x": 210,
+        "x": 130,
         "y": 260,
         "wires": [
             [
                 "33a37e247cbfbbe2",
                 "3a72fc1db1a4fe0e",
-                "d9aeb1ae0ad43db7"
+                "d9aeb1ae0ad43db7",
+                "4579841be2238c59",
+                "a53f331c8a5c20ed",
+                "a0a7df94b609af09",
+                "24605a2192dbb962"
             ]
         ]
     },
@@ -304,8 +311,8 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 1100,
-        "y": 220,
+        "x": 1160,
+        "y": 320,
         "wires": []
     },
     {
@@ -332,8 +339,8 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 1090,
-        "y": 260,
+        "x": 1150,
+        "y": 360,
         "wires": []
     },
     {
@@ -360,8 +367,8 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 1080,
-        "y": 300,
+        "x": 1140,
+        "y": 400,
         "wires": []
     },
     {
@@ -369,21 +376,18 @@
         "type": "function",
         "z": "f69357c771ce2ffc",
         "name": "To Sensors",
-        "func": "let p = msg.payload || {};\n\nreturn [\n    { payload: p.temp_c },\n    { payload: p.humidity_pct },\n    { payload: p.vpd_kpa },\n    { payload: p.lux}\n];",
+        "func": "let p = msg.payload || {};\nlet ts = p.timestamp || null;\n\nlet mTemp = (p.temp_c !== undefined) ? { payload: Number(p.temp_c), timestamp: ts } : null;\n\nreturn [mTemp];",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 830,
-        "y": 400,
+        "x": 970,
+        "y": 320,
         "wires": [
             [
-                "4579841be2238c59",
-                "a53f331c8a5c20ed",
-                "a0a7df94b609af09",
-                "24605a2192dbb962"
+                "4579841be2238c59"
             ]
         ]
     },
@@ -399,8 +403,8 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1080,
-        "y": 140,
+        "x": 320,
+        "y": 120,
         "wires": []
     },
     {
@@ -436,8 +440,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
-        "y": 220,
+        "x": 660,
+        "y": 180,
         "wires": [
             [
                 "d9aeb1ae0ad43db7"
@@ -482,8 +486,8 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 850,
-        "y": 300,
+        "x": 930,
+        "y": 220,
         "wires": [
             []
         ]
@@ -512,8 +516,8 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 1080,
-        "y": 340,
+        "x": 1140,
+        "y": 440,
         "wires": []
     },
     {
@@ -564,9 +568,69 @@
         "shape": "dot",
         "showGlow": true,
         "name": "led_nor",
-        "x": 870,
-        "y": 20,
+        "x": 920,
+        "y": 40,
         "wires": []
+    },
+    {
+        "id": "4f3f71a1c9064305",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To Sensors",
+        "func": "let p = msg.payload || {};\nlet ts = p.timestamp || null;\n\nlet mHum  = (p.humidity_pct !== undefined) ? { payload: Number(p.humidity_pct), timestamp: ts } : null;\n\nreturn [ mHum];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 360,
+        "wires": [
+            [
+                "a53f331c8a5c20ed"
+            ]
+        ]
+    },
+    {
+        "id": "cb4faf023c6c7908",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To Sensors",
+        "func": "let p = msg.payload || {};\nlet ts = p.timestamp || null;\nlet mVPD  = (p.vpd_kpa !== undefined) ? { payload: Number(p.vpd_kpa), timestamp: ts } : null;\n\nreturn [mVPD];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 400,
+        "wires": [
+            [
+                "a0a7df94b609af09"
+            ]
+        ]
+    },
+    {
+        "id": "1ea7b4e657e7fd76",
+        "type": "function",
+        "z": "f69357c771ce2ffc",
+        "name": "To Sensors",
+        "func": "let p = msg.payload || {};\nlet ts = p.timestamp || null;\n\nlet mLux  = (p.lux !== undefined) ? { payload: Number(p.lux), timestamp: ts } : null;\n\nreturn [mLux];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 440,
+        "wires": [
+            [
+                "24605a2192dbb962"
+            ]
+        ]
     },
     {
         "id": "dfa3a53ad34ef2b6",
@@ -1031,7 +1095,7 @@
         "hidden": false
     },
     {
-        "id": "88984b611d48bfa3",
+        "id": "03f2b9607da0420a",
         "type": "global-config",
         "env": [],
         "modules": {
